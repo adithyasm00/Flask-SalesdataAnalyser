@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | SalesAnalyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+    :root {
+        --bg:           #080c12;
+        --bg2:          #0c1118;
+        --surface:      #0f1520;
+        --surface2:     #141c28;
+        --surface3:     #1a2436;
+        --gold:         #c9a84c;
+        --gold2:        #e4be6a;
+        --gold3:        #f5d98a;
+        --gold-dim:     rgba(201,168,76,0.15);
+        --gold-glow:    rgba(201,168,76,0.3);
+        --blue:         #3a7bd5;
+        --blue-dim:     rgba(58,123,213,0.12);
+        --white:        #f0f2f5;
+        --muted:        #8a94a6;
+        --muted2:       #5a6275;
+        --border:       rgba(201,168,76,0.12);
+        --border-h:     rgba(201,168,76,0.35);
+        --border-sub:   rgba(255,255,255,0.06);
+        --green:        #22c55e;
+        --green-dim:    rgba(34,197,94,0.12);
+        --red:          #ef4444;
+        --red-dim:      rgba(239,68,68,0.12);
+        --sidebar-w:    252px;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+        background: var(--bg);
+        color: var(--white);
+        font-family: 'DM Sans', sans-serif;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    /* GRAIN */
+    body::before {
+        content: '';
+        position: fixed; inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+        pointer-events: none; z-index: 9999; opacity: 0.5;
+    }
+
+    /* LAYOUT */
+    .grid-container {
+        display: grid;
+        grid-template-columns: var(--sidebar-w) 1fr;
+        min-height: 100vh;
+    }
+
+    /* ══ SIDEBAR ══ */
+    .sidebar {
+        background: linear-gradient(180deg, #080e18 0%, #06090f 100%);
+        border-right: 1px solid var(--border);
+        display: flex; flex-direction: column;
+        position: fixed; top: 0; left: 0;
+        width: var(--sidebar-w); height: 100vh;
+        z-index: 50;
+    }
+    .sidebar::after {
+        content: '';
+        position: absolute; top: 0; right: 0;
+        width: 1px; height: 100%;
+        background: linear-gradient(180deg, transparent, var(--gold) 45%, transparent);
+        opacity: 0.2;
+        animation: lineFlicker 5s ease-in-out infinite;
+    }
+    @keyframes lineFlicker { 0%,100%{opacity:0.15} 50%{opacity:0.35} }
+
+    .logo-section {
+        padding: 28px 22px 22px;
+        border-bottom: 1px solid var(--border);
+        display: flex; align-items: center; gap: 12px;
+    }
+    .logo-icon {
+        width: 34px; height: 34px;
+        background: linear-gradient(135deg, var(--gold), var(--gold2));
+        border-radius: 6px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.85rem; color: var(--bg);
+        box-shadow: 0 0 18px var(--gold-glow);
+        flex-shrink: 0;
+    }
+    .logo-text {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.1rem; font-weight: 700;
+        letter-spacing: 0.04em; color: var(--white); line-height: 1.1;
+    }
+    .logo-text small {
+        display: block;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.46rem; letter-spacing: 0.2em;
+        color: var(--gold); text-transform: uppercase; margin-top: 3px;
+    }
+
+    .sidebar-section-label {
+        padding: 18px 22px 6px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.52rem; letter-spacing: 0.2em;
+        color: var(--muted2); text-transform: uppercase;
+    }
+
+    .nav-links { list-style: none; padding: 4px 0; flex: 1; }
+    .nav-links li a {
+        display: flex; align-items: center; gap: 11px;
+        padding: 11px 22px;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 500; font-size: 0.84rem;
+        color: var(--muted); text-decoration: none;
+        border-left: 2px solid transparent;
+        transition: all 0.22s;
+    }
+    .nav-links li a i { font-size: 0.82rem; width: 16px; }
+    .nav-links li a:hover { color: var(--white); background: rgba(201,168,76,0.04); }
+    .nav-links li a.active {
+        color: var(--gold);
+        border-left-color: var(--gold);
+        background: var(--gold-dim);
+    }
+    .logout-item { margin-top: auto; }
+
+    /* ══ MAIN WRAPPER ══ */
+    .main-wrapper {
+        margin-left: var(--sidebar-w);
+        display: flex; flex-direction: column;
+        min-height: 100vh;
+        position: relative; z-index: 1;
+    }
+
+    .top-navbar {
+        background: rgba(8,12,18,0.92);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--border);
+        padding: 0 40px; height: 62px;
+        display: flex; align-items: center; justify-content: flex-end;
+        position: sticky; top: 0; z-index: 40;
+    }
+    .user-info {
+        display: flex; align-items: center; gap: 12px;
+    }
+    .user-info span {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.84rem; color: var(--muted);
+    }
+    .user-info strong { color: var(--white); font-weight: 600; }
+    .avatar-sm {
+        width: 34px; height: 34px;
+        background: linear-gradient(135deg, var(--gold), var(--gold2));
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-family: 'Syne', sans-serif;
+        font-size: 1rem; font-weight: 800; color: var(--bg);
+        box-shadow: 0 0 12px var(--gold-glow);
+        text-transform: uppercase;
+    }
+
+    /* ══ MAIN CONTENT ══ */
+    .main-content {
+        padding: 40px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;      /* horizontal center */
+    }
+
+    /* inner wrapper constrains max-width and centers everything */
+    .content-inner {
+        width: 100%;
+        max-width: 900px;
+    }
+
+    /* FLASH */
+    .flash-container { margin-bottom: 22px; width: 100%; }
+    .flash {
+        padding: 12px 18px; margin-bottom: 8px; border-radius: 8px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.88rem; font-weight: 500;
+        border-left: 3px solid var(--gold);
+        background: var(--gold-dim); color: var(--white);
+    }
+    .flash.success { border-left-color: var(--green); background: var(--green-dim); }
+    .flash.error   { border-left-color: var(--red);   background: var(--red-dim); }
+
+    /* PAGE HEADER */
+    .page-header {
+        margin-bottom: 32px;
+        width: 100%;
+    }
+    .page-eyebrow {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.58rem; letter-spacing: 0.25em;
+        color: var(--gold); text-transform: uppercase; margin-bottom: 6px;
+    }
+    .page-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 2rem; font-weight: 800;
+        letter-spacing: 0.05em; color: var(--white);
+    }
+
+    /* ══ PROFILE LAYOUT ══ */
+    .profile-layout {
+        display: grid;
+        grid-template-columns: 270px 1fr;
+        gap: 24px;
+        align-items: start;
+        width: 100%;
+    }
+
+    /* ── IDENTITY CARD ── */
+    .identity-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        position: sticky; top: 80px;
+        transition: border-color 0.3s;
+    }
+    .identity-card:hover { border-color: var(--border-h); }
+
+    .id-banner {
+        height: 78px;
+        background: linear-gradient(135deg, #0a1020 0%, rgba(201,168,76,0.22) 60%, rgba(201,168,76,0.08) 100%);
+        position: relative; overflow: hidden;
+    }
+    .id-banner::before {
+        content: '';
+        position: absolute; inset: 0;
+        background: repeating-linear-gradient(
+            45deg, transparent, transparent 8px,
+            rgba(201,168,76,0.035) 8px, rgba(201,168,76,0.035) 9px
+        );
+    }
+    .id-banner::after {
+        content: '';
+        position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+        background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        opacity: 0.35;
+    }
+
+    .id-avatar-wrap {
+        display: flex; justify-content: center;
+        margin-top: -30px; position: relative; z-index: 2;
+    }
+    .avatar-lg {
+        width: 62px; height: 62px;
+        background: linear-gradient(135deg, var(--gold), var(--gold2));
+        border-radius: 50%;
+        border: 3px solid var(--surface);
+        display: flex; align-items: center; justify-content: center;
+        font-family: 'Syne', sans-serif;
+        font-size: 1.7rem; font-weight: 800; color: var(--bg);
+        box-shadow: 0 0 22px var(--gold-glow);
+        position: relative;
+        text-transform: uppercase;
+    }
+    .avatar-lg::after {
+        content: '';
+        position: absolute; bottom: 2px; right: 2px;
+        width: 12px; height: 12px;
+        background: var(--green); border-radius: 50%;
+        border: 2px solid var(--surface);
+        box-shadow: 0 0 8px rgba(34,197,94,0.6);
+    }
+
+    .id-name-block {
+        padding: 14px 20px 0;
+        text-align: center;
+    }
+    .id-name {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.15rem; font-weight: 800;
+        letter-spacing: 0.03em; color: var(--white);
+        word-break: break-word;
+    }
+    .id-email {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.64rem; color: var(--muted2);
+        margin-top: 5px; word-break: break-all;
+        letter-spacing: 0.03em; line-height: 1.5;
+    }
+    .role-pill {
+        display: inline-block;
+        margin: 10px auto 0;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase;
+        padding: 4px 12px; border-radius: 20px;
+        background: var(--gold-dim);
+        border: 1px solid var(--border);
+        color: var(--gold);
+    }
+
+    .id-divider { height: 1px; background: var(--border); margin: 18px 20px; }
+
+    .id-stats {
+        padding: 0 18px 20px;
+        display: flex; flex-direction: column; gap: 10px;
+    }
+    .id-stat-row {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 9px 12px; border-radius: 7px;
+        background: var(--surface2); border: 1px solid var(--border-sub);
+        transition: border-color 0.2s;
+    }
+    .id-stat-row:hover { border-color: var(--border); }
+    .id-stat-label {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.56rem; letter-spacing: 0.12em;
+        color: var(--muted2); text-transform: uppercase;
+        display: flex; align-items: center; gap: 7px;
+    }
+    .id-stat-label i { color: var(--gold); font-size: 0.6rem; }
+    .id-stat-val {
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 600; font-size: 0.8rem; color: var(--white);
+    }
+    .id-stat-val.active {
+        color: var(--green);
+        display: flex; align-items: center; gap: 5px;
+    }
+    .id-stat-val.active::before {
+        content: '';
+        width: 6px; height: 6px; border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 6px rgba(34,197,94,0.6);
+        animation: pulse 2s ease-in-out infinite;
+        flex-shrink: 0;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    /* ── DETAIL PANELS ── */
+    .detail-panels { display: flex; flex-direction: column; gap: 20px; }
+
+    .panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: border-color 0.3s;
+    }
+    .panel:hover { border-color: var(--border-h); }
+
+    .panel-header {
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(201,168,76,0.025);
+        display: flex; align-items: center; gap: 12px;
+    }
+    .panel-header-icon {
+        width: 30px; height: 30px;
+        background: var(--gold-dim);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.76rem; color: var(--gold);
+        flex-shrink: 0;
+    }
+    .panel-title {
+        font-family: 'Syne', sans-serif;
+        font-weight: 700; font-size: 0.88rem;
+        letter-spacing: 0.06em; text-transform: uppercase;
+        color: var(--white);
+    }
+
+    .panel-body { padding: 24px; }
+
+    /* Info grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    .info-field label {
+        display: flex; align-items: center; gap: 6px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.55rem; letter-spacing: 0.16em;
+        color: var(--muted2); text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+    .info-field label i { color: var(--gold); font-size: 0.56rem; }
+    .info-field .field-val {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem; font-weight: 500; color: var(--white);
+        padding: 10px 14px;
+        background: var(--surface2);
+        border: 1px solid var(--border-sub);
+        border-radius: 7px;
+        word-break: break-all;
+        transition: border-color 0.2s;
+        min-height: 40px;
+        display: flex; align-items: center;
+    }
+    .info-field .field-val:hover { border-color: var(--border); }
+    .field-val.status-active {
+        color: var(--green);
+        background: var(--green-dim);
+        border-color: rgba(34,197,94,0.2);
+        gap: 8px;
+    }
+    .field-val.status-active::before {
+        content: '';
+        width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+        background: var(--green);
+        box-shadow: 0 0 6px rgba(34,197,94,0.6);
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    /* FORM INPUTS */
+    .profile-input {
+        width: 100%;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        color: var(--white);
+        padding: 10px 14px;
+        border-radius: 7px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.88rem;
+        outline: none;
+        transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .profile-input:focus {
+        border-color: var(--gold);
+        box-shadow: 0 0 0 3px var(--gold-dim);
+    }
+    .profile-input::placeholder { color: var(--muted2); }
+
+    /* ACTION TILES */
+    .action-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .action-tile {
+        padding: 16px 18px;
+        background: var(--surface2);
+        border: 1px solid var(--border-sub);
+        border-radius: 9px;
+        cursor: pointer;
+        transition: all 0.25s;
+        display: flex; align-items: center; gap: 14px;
+        text-align: left; width: 100%;
+    }
+    .action-tile:hover {
+        border-color: var(--border-h);
+        background: var(--gold-dim);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    }
+    .action-tile-icon {
+        width: 36px; height: 36px; flex-shrink: 0;
+        background: var(--gold-dim);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.88rem; color: var(--gold);
+        transition: all 0.25s;
+    }
+    .action-tile:hover .action-tile-icon {
+        background: rgba(201,168,76,0.25);
+        box-shadow: 0 0 12px var(--gold-glow);
+    }
+    .action-tile-text { flex: 1; }
+    .action-tile-title {
+        font-family: 'Syne', sans-serif;
+        font-weight: 700; font-size: 0.82rem;
+        letter-spacing: 0.04em; text-transform: uppercase;
+        color: var(--white); display: block; margin-bottom: 3px;
+    }
+    .action-tile-sub { font-size: 0.73rem; color: var(--muted2); font-weight: 400; }
+    .action-tile-arrow {
+        margin-left: auto; color: var(--muted2);
+        font-size: 0.7rem; flex-shrink: 0;
+        transition: transform 0.2s, color 0.2s;
+    }
+    .action-tile:hover .action-tile-arrow { transform: translateX(3px); color: var(--gold); }
+
+    /* BUTTON GROUP */
+    .btn-group {
+        display: flex; gap: 12px;
+        margin-top: 24px; padding-top: 20px;
+        border-top: 1px solid var(--border);
+        flex-wrap: wrap;
+    }
+    .btn-primary {
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 600; font-size: 0.84rem;
+        letter-spacing: 0.03em;
+        padding: 11px 28px; border-radius: 8px;
+        background: linear-gradient(135deg, var(--gold), var(--gold2));
+        color: var(--bg); border: none;
+        cursor: pointer; transition: all 0.25s;
+        display: inline-flex; align-items: center; gap: 7px;
+        box-shadow: 0 4px 18px var(--gold-glow);
+    }
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--gold2), var(--gold3));
+        box-shadow: 0 6px 24px var(--gold-glow);
+        transform: translateY(-1px);
+    }
+    .btn-outline {
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 600; font-size: 0.84rem;
+        letter-spacing: 0.03em;
+        padding: 11px 24px; border-radius: 8px;
+        background: transparent; color: var(--muted);
+        border: 1px solid var(--border-sub);
+        cursor: pointer; transition: all 0.25s;
+        display: inline-flex; align-items: center; gap: 7px;
+    }
+    .btn-outline:hover {
+        border-color: var(--border); color: var(--white);
+        transform: translateY(-1px);
+    }
+    .btn-danger-outline {
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 600; font-size: 0.84rem;
+        padding: 11px 24px; border-radius: 8px;
+        background: transparent; color: var(--red);
+        border: 1px solid rgba(239,68,68,0.3);
+        cursor: pointer; transition: all 0.25s;
+        display: inline-flex; align-items: center; gap: 7px;
+        text-decoration: none;
+    }
+    .btn-danger-outline:hover {
+        background: var(--red-dim);
+        border-color: rgba(239,68,68,0.5);
+        transform: translateY(-1px);
+    }
+
+    /* INLINE FORM PANELS */
+    .form-panel { display: none; }
+    .form-panel.visible { display: block; }
+
+    .form-section-head { margin-bottom: 20px; }
+    .form-section-head .eyebrow {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.55rem; letter-spacing: 0.2em;
+        color: var(--gold); text-transform: uppercase; margin-bottom: 4px;
+    }
+    .form-section-head .title {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.2rem; font-weight: 800;
+        letter-spacing: 0.04em; color: var(--white);
+    }
+
+    /* STRENGTH HINT */
+    .strength-hint {
+        margin-top: 6px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.58rem; letter-spacing: 0.1em;
+        color: var(--muted2);
+    }
+
+    /* DANGER ZONE */
+    .danger-zone-row {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 20px; flex-wrap: wrap;
+    }
+    .danger-zone-label {
+        font-family: 'Syne', sans-serif;
+        font-weight: 700; font-size: 0.9rem;
+        letter-spacing: 0.04em; text-transform: uppercase;
+        color: var(--white); margin-bottom: 4px;
+    }
+    .danger-zone-sub { font-size: 0.82rem; color: var(--muted2); font-weight: 400; }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.2); border-radius: 10px; }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+        .profile-layout { grid-template-columns: 1fr; }
+        .identity-card { position: static; }
+    }
+    @media (max-width: 768px) {
+        .grid-container { grid-template-columns: 1fr; }
+        .sidebar { display: none; }
+        .main-wrapper { margin-left: 0; }
+        .info-grid { grid-template-columns: 1fr; }
+        .action-tiles { grid-template-columns: 1fr; }
+        .main-content { padding: 24px 16px; }
+    }
+
+    /* ENTRANCE */
+    .panel, .identity-card {
+        opacity: 0; transform: translateY(16px);
+        animation: fadeUp 0.45s cubic-bezier(.4,0,.2,1) forwards;
+    }
+    .identity-card { animation-delay: 0.05s; }
+    .panel:nth-child(1) { animation-delay: 0.12s; }
+    .panel:nth-child(2) { animation-delay: 0.22s; }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+<div class="grid-container">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+        <div class="logo-section">
+            <div class="logo-icon"><i class="fas fa-chart-pie"></i></div>
+            <div class="logo-text">
+                SalesAnalyzer
+                <small>Console v2.0</small>
+            </div>
+        </div>
+
+        <div class="sidebar-section-label">Navigation</div>
+        <ul class="nav-links">
+            <li><a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="/profile" class="active"><i class="fas fa-user"></i> My Profile</a></li>
+            <li class="logout-item">
+                <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- MAIN -->
+    <div class="main-wrapper">
+        <main class="main-content">
+            <div class="content-inner">
+
+                <!-- FLASH -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="flash-container">
+                    {% for category, message in messages %}
+                    <div class="flash {{ category }}">
+                        {% if category == 'success' %}<i class="fas fa-circle-check" style="margin-right:7px;color:var(--green);"></i>
+                        {% elif category == 'error' %}<i class="fas fa-circle-xmark" style="margin-right:7px;color:var(--red);"></i>
+                        {% endif %}{{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <!-- PAGE HEADER -->
+                <div class="page-header">
+                    
+                    <div class="page-title">MY PROFILE</div>
+                </div>
+
+                <!-- TWO-COLUMN LAYOUT -->
+                <div class="profile-layout">
+
+                    <!-- LEFT: Identity Card -->
+                    <div class="identity-card">
+                        <div class="id-banner"></div>
+
+                        <div class="id-avatar-wrap">
+                            <div class="avatar-lg">{{ user.name[0] }}</div>
+                        </div>
+
+                        <div class="id-name-block">
+                            <div class="id-name">{{ user.name }}</div>
+                            <div class="id-email">{{ user.email }}</div>
+                            <span class="role-pill">{{ user.role }}</span>
+                        </div>
+
+                        <div class="id-divider"></div>
+
+                        <div class="id-stats">
+                            <div class="id-stat-row">
+                                <span class="id-stat-label">
+                                    <i class="fas fa-circle-dot"></i> Status
+                                </span>
+                                <span class="id-stat-val active">Active</span>
+                            </div>
+                            <div class="id-stat-row">
+                                <span class="id-stat-label">
+                                    <i class="fas fa-shield-halved"></i> Permissions
+                                </span>
+                                <span class="id-stat-val">
+                                    {% if user.role == 'admin' %}Administrator{% else %}Standard User{% endif %}
+                                </span>
+                            </div>
+                            <div class="id-stat-row">
+                                <span class="id-stat-label">
+                                    <i class="fas fa-chart-bar"></i> Total Sales
+                                </span>
+                                <span class="id-stat-val">{{ stats.count if stats else 0 }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: Detail Panels -->
+                    <div class="detail-panels">
+
+                        <!-- PANEL 1: Account Information -->
+                        <div class="panel" id="panel-info">
+                            <div class="panel-header">
+                                <div class="panel-header-icon"><i class="fas fa-id-card"></i></div>
+                                <div>
+                                    <div class="panel-title">Account Information</div>
+                                </div>
+                            </div>
+                            <div class="panel-body">
+
+                                <!-- Read view -->
+                                <div id="display-section">
+                                    <div class="info-grid">
+                                        <div class="info-field">
+                                            <label><i class="fas fa-id-card"></i> Full Name</label>
+                                            <div class="field-val">{{ user.name }}</div>
+                                        </div>
+                                        <div class="info-field">
+                                            <label><i class="fas fa-envelope"></i> Email Address</label>
+                                            <div class="field-val">{{ user.email }}</div>
+                                        </div>
+                                        <div class="info-field">
+                                            <label><i class="fas fa-circle-check"></i> Account Status</label>
+                                            <div class="field-val status-active">Active</div>
+                                        </div>
+                                        <div class="info-field">
+                                            <label><i class="fas fa-user-shield"></i> Permissions Level</label>
+                                            <div class="field-val">
+                                                {% if user.role == 'admin' %}Administrator Access{% else %}Standard User{% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Action Tiles -->
+                                    <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
+                                        <div class="action-tiles">
+                                            <button class="action-tile" onclick="showSection('edit-profile')">
+                                                <div class="action-tile-icon"><i class="fas fa-user-pen"></i></div>
+                                                <div class="action-tile-text">
+                                                    <span class="action-tile-title">Edit Profile</span>
+                                                    <span class="action-tile-sub">Update name &amp; email</span>
+                                                </div>
+                                                <i class="fas fa-chevron-right action-tile-arrow"></i>
+                                            </button>
+                                            <button class="action-tile" onclick="showSection('change-password')">
+                                                <div class="action-tile-icon"><i class="fas fa-key"></i></div>
+                                                <div class="action-tile-text">
+                                                    <span class="action-tile-title">Security</span>
+                                                    <span class="action-tile-sub">Change your password</span>
+                                                </div>
+                                                <i class="fas fa-chevron-right action-tile-arrow"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- EDIT PROFILE FORM -->
+                                <div id="edit-profile" class="form-panel">
+                                    <div class="form-section-head">
+                                        
+                                        <div class="title">BASIC INFORMATION</div>
+                                    </div>
+                                    <form action="/update_profile" method="POST">
+                                        <div class="info-grid">
+                                            <div class="info-field">
+                                                <label><i class="fas fa-id-card"></i> Full Name</label>
+                                                <input type="text" name="name"
+                                                    value="{{ user.name }}"
+                                                    class="profile-input" required
+                                                    placeholder="Your full name">
+                                            </div>
+                                            <div class="info-field">
+                                                <label><i class="fas fa-envelope"></i> Email Address</label>
+                                                <input type="email" name="email"
+                                                    value="{{ user.email }}"
+                                                    class="profile-input" required
+                                                    placeholder="your@email.com">
+                                            </div>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button type="submit" class="btn-primary">
+                                                <i class="fas fa-check"></i> Save Changes
+                                            </button>
+                                            <button type="button" class="btn-outline" onclick="resetView()">
+                                                <i class="fas fa-xmark"></i> Cancel
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <!-- CHANGE PASSWORD FORM -->
+                                <div id="change-password" class="form-panel">
+                                    <div class="form-section-head">
+                                        
+                                        <div class="title">UPDATE PASSWORD</div>
+                                    </div>
+                                    <form action="/change_password" method="POST">
+                                        <div class="info-grid">
+                                            <div class="info-field">
+                                                <label><i class="fas fa-lock"></i> New Password</label>
+                                                <input type="password" name="new_password"
+                                                    class="profile-input"
+                                                    placeholder="Min 8 characters"
+                                                    id="new-pass" oninput="checkStrength()"
+                                                    required>
+                                                <div class="strength-hint" id="strength-hint"></div>
+                                            </div>
+                                            <div class="info-field">
+                                                <label><i class="fas fa-lock-open"></i> Confirm Password</label>
+                                                <input type="password" name="confirm_password"
+                                                    class="profile-input"
+                                                    placeholder="Repeat password"
+                                                    required>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button type="submit" class="btn-primary">
+                                                <i class="fas fa-lock"></i> Update Password
+                                            </button>
+                                            <button type="button" class="btn-outline" onclick="resetView()">
+                                                <i class="fas fa-xmark"></i> Cancel
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                            </div><!-- /panel-body -->
+                        </div><!-- /panel -->
+
+                        <!-- PANEL 2: Danger Zone / Logout -->
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="panel-header-icon" style="background:var(--red-dim);border-color:rgba(239,68,68,0.25);">
+                                    <i class="fas fa-triangle-exclamation" style="color:var(--red);"></i>
+                                </div>
+                                <div>
+                                    <div class="panel-title">Exit</div>
+                                </div>
+                            </div>
+                            <div class="panel-body">
+                                <div class="danger-zone-row">
+                                    <div>
+                                        <div class="danger-zone-label">Sign Out of Account</div>
+                                        <div class="danger-zone-sub">You will be redirected to the login page.</div>
+                                    </div>
+                                    <a href="/logout" class="btn-danger-outline">
+                                        <i class="fas fa-sign-out-alt"></i> Logout
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div><!-- /detail-panels -->
+                </div><!-- /profile-layout -->
+
+            </div><!-- /content-inner -->
+        </main>
+    </div>
+</div>
+
+<script>
+function showSection(id) {
+    document.getElementById('display-section').style.display = 'none';
+    document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('visible'));
+    const target = document.getElementById(id);
+    if (target) target.classList.add('visible');
+}
+
+function resetView() {
+    document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('visible'));
+    document.getElementById('display-section').style.display = '';
+}
+
+function checkStrength() {
+    const val  = document.getElementById('new-pass').value;
+    const hint = document.getElementById('strength-hint');
+    if (!val) { hint.textContent = ''; return; }
+    let score = 0;
+    if (val.length >= 8)          score++;
+    if (/[A-Z]/.test(val))        score++;
+    if (/[0-9]/.test(val))        score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+    const levels = [
+        { text: '◈ WEAK',   color: 'var(--red)' },
+        { text: '◈ FAIR',   color: '#f59e0b' },
+        { text: '◈ GOOD',   color: 'var(--green)' },
+        { text: '◈ STRONG', color: 'var(--green)' },
+    ];
+    const lvl = levels[Math.min(score - 1, 3)] || levels[0];
+    hint.textContent = lvl.text;
+    hint.style.color = lvl.color;
+}
+</script>
+</body>
+</html>
