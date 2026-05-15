@@ -8,7 +8,7 @@ from io import StringIO, BytesIO
 
 from flask import (
     Flask, render_template, request, redirect,
-    url_for, session, flash, make_response, jsonify
+    url_for, session, flash, make_response, jsonify, Response
 )
 
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -152,12 +152,228 @@ def _start_session(user):
 
 def generate_chart(fig):
     buf = BytesIO()
-    fig.savefig(buf, format='png', bbox_inches='tight',
-                facecolor='#110407', edgecolor='none', dpi=120)
+    fig.savefig(buf, format='png', bbox_inches='tight', facecolor='#0f1520', edgecolor='none', dpi=150)
     buf.seek(0)
-    img_b64 = base64.b64encode(buf.read()).decode('utf-8')
     plt.close(fig)
-    return f"data:image/png;base64,{img_b64}"
+    return buf.getvalue()
+
+
+def chart_response(fig):
+    return Response(generate_chart(fig), mimetype='image/png')
+
+
+def _empty_chart(message, height=3.0):
+    fig, ax = plt.subplots(figsize=(6.2, height), facecolor='#0f1520')
+    ax.set_facecolor('#0f1520')
+    ax.text(0.5, 0.52, message, ha='center', va='center', color='#8a94a6', fontsize=11, fontweight='600')
+    ax.text(0.5, 0.40, 'Sales Analyzer', ha='center', va='center', color='#c9a84c', fontsize=8, alpha=0.65)
+    ax.set_axis_off()
+    return fig
+
+
+def _style_chart_ax(ax, grid_axis='y'):
+    ax.set_facecolor('#0f1520')
+    ax.tick_params(colors='#8a94a6', labelsize=8)
+    for spine in ax.spines.values():
+        spine.set_color((1, 1, 1, 0.08))
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    if grid_axis:
+        ax.grid(True, axis=grid_axis, color=(201/255, 168/255, 76/255, 0.08), linewidth=0.8)
+        ax.set_axisbelow(True)
+
+
+def _format_axis_inr(value, _pos=None):
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        return 'Rs.0'
+    if abs(value) >= 100000:
+        return f'Rs.{value / 100000:.1f}L'
+    if abs(value) >= 1000:
+        return f'Rs.{value / 1000:.0f}k'
+    return f'Rs.{value:.0f}'
+
+
+def _get_filtered_sales_df(user_id, args=None):
+    conn = get_db_connection()
+    rows = conn.execute('SELECT * FROM sales WHERE user_id=? ORDER BY date DESC', (user_id,)).fetchall()
+    conn.close()
+    df = pd.DataFrame([dict(r) for r in rows])
+    if df.empty:
+        return df
+
+    df = _prep_df(df)
+    args = args or {}
+    from_date = (args.get('from_date') or '').strip()
+    to_date = (args.get('to_date') or '').strip()
+    category = (args.get('category') or '').strip()
+    min_profit = (args.get('min_profit') or '').strip()
+    max_profit = (args.get('max_profit') or '').strip()
+
+    if from_date:
+        parsed = pd.to_datetime(from_date, errors='coerce')
+        if pd.notna(parsed):
+            df = df[df['date_dt'] >= parsed]
+    if to_date:
+        parsed = pd.to_datetime(to_date, errors='coerce')
+        if pd.notna(parsed):
+            df = df[df['date_dt'] <= parsed]
+    if category:
+        df = df[df['category'].str.strip().str.lower() == category.lower()]
+    if min_profit:
+        try:
+            df = df[df['profit'] >= float(min_profit)]
+        except ValueError:
+            pass
+    if max_profit:
+        try:
+            df = df[df['profit'] <= float(max_profit)]
+        except ValueError:
+            pass
+    return df
+
+
+def _plot_product_revenue(df):
+    if df.empty:
+        return _empty_chart('Add sales to see top products')
+    top = df.groupby('product')['total'].sum().sort_values(ascending=True).tail(6)
+    fig, ax = plt.subplots(figsize=(6.4, 3.0), facecolor='#0f1520')
+    colors = ['#3a7bd5', '#22c55e', '#f59e0b', '#c9a84c', '#e4be6a', '#f5d98a'][-len(top):]
+    ax.barh(top.index, top.values, color=colors, edgecolor='#e4be6a', linewidth=0.8, alpha=0.88)
+    _style_chart_ax(ax, 'x')
+    ax.xaxis.set_major_formatter(plt.FuncFormatter(_format_axis_inr))
+    ax.set_xlabel('Revenue', color='#8a94a6', fontsize=8)
+    ax.tick_params(axis='y', labelsize=8)
+    fig.tight_layout(pad=1.2)
+    return fig
+
+
+def _plot_category_share(df):
+    if df.empty:
+        return _empty_chart('Add sales to see category share')
+    cat = df.groupby('category')['total'].sum().sort_values(ascending=False)
+    fig, ax = plt.subplots(figsize=(6.4, 3.0), facecolor='#0f1520')
+    colors = ['#c9a84c', '#e4be6a', '#f5d98a', '#3a7bd5', '#22c55e', '#f59e0b', '#8a94a6']
+    wedges, texts, autotexts = ax.pie(
+        cat.values,
+        labels=cat.index,
+        autopct=lambda p: f'{p:.0f}%' if p >= 4 else '',
+        colors=colors[:len(cat)],
+        startangle=135,
+        pctdistance=0.78,
+        wedgeprops={'width': 0.42, 'edgecolor': '#0f1520', 'linewidth': 2},
+    )
+    for label in texts:
+        label.set_color('#8a94a6')
+        label.set_fontsize(8)
+    for label in autotexts:
+        label.set_color('#f0f2f5')
+        label.set_fontsize(8)
+        label.set_fontweight('bold')
+    total = cat.sum()
+    centre = _format_axis_inr(total)
+    ax.text(0, 0.05, centre, ha='center', va='center', color='#f0f2f5', fontsize=12, fontweight='bold')
+    ax.text(0, -0.12, 'TOTAL', ha='center', va='center', color='#8a94a6', fontsize=7)
+    ax.set_facecolor('#0f1520')
+    fig.tight_layout(pad=1.0)
+    return fig
+
+
+def _plot_sales_trend(df):
+    if df.empty or df['date_dt'].isna().all():
+        return _empty_chart('No trend data yet', height=2.45)
+    cutoff = pd.Timestamp.now().normalize() - pd.Timedelta(days=29)
+    daily = df[df['date_dt'] >= cutoff].groupby('date_dt')['total'].sum().sort_index()
+    if daily.empty:
+        return _empty_chart('No trend data yet', height=2.45)
+    fig, ax = plt.subplots(figsize=(5.2, 2.45), facecolor='#0f1520')
+    labels = [d.strftime('%d %b') for d in daily.index]
+    x = np.arange(len(labels))
+    ax.plot(x, daily.values, color='#e4be6a', linewidth=2.2, marker='o', markersize=3.2, markerfacecolor='#c9a84c')
+    ax.fill_between(x, daily.values, color='#c9a84c', alpha=0.12)
+    _style_chart_ax(ax, 'y')
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(_format_axis_inr))
+    ax.set_xticks(x[::max(1, len(x)//5)])
+    ax.set_xticklabels(labels[::max(1, len(x)//5)], rotation=25, ha='right')
+    fig.tight_layout(pad=1.0)
+    return fig
+
+
+def _plot_profit_vs_revenue(df):
+    if df.empty or df['date_dt'].isna().all():
+        return _empty_chart('No monthly data yet', height=2.45)
+    temp = df.dropna(subset=['date_dt']).copy()
+    temp['month_period'] = temp['date_dt'].dt.to_period('M')
+    monthly = temp.groupby('month_period').agg(revenue=('total', 'sum'), profit=('profit', 'sum')).sort_index().tail(6)
+    if monthly.empty:
+        return _empty_chart('No monthly data yet', height=2.45)
+    labels = [p.strftime('%b %Y') for p in monthly.index]
+    x = np.arange(len(labels))
+    width = 0.36
+    fig, ax = plt.subplots(figsize=(5.2, 2.45), facecolor='#0f1520')
+    ax.bar(x - width/2, monthly['revenue'], width, label='Revenue', color='#c9a84c', alpha=0.88)
+    ax.bar(x + width/2, monthly['profit'], width, label='Profit', color='#22c55e', alpha=0.78)
+    _style_chart_ax(ax, 'y')
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(_format_axis_inr))
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=25, ha='right')
+    ax.legend(frameon=False, labelcolor='#8a94a6', fontsize=7, loc='upper left')
+    fig.tight_layout(pad=1.0)
+    return fig
+
+
+def _plot_growth_rate(df):
+    if df.empty or df['date_dt'].isna().all():
+        return _empty_chart('Need 2+ months of data', height=2.45)
+    temp = df.dropna(subset=['date_dt']).copy()
+    temp['month_period'] = temp['date_dt'].dt.to_period('M')
+    monthly = temp.groupby('month_period')['total'].sum().sort_index()
+    growth = monthly.pct_change().dropna() * 100
+    if growth.empty:
+        return _empty_chart('Need 2+ months of data', height=2.45)
+    growth = growth.tail(6)
+    labels = [p.strftime('%b %Y') for p in growth.index]
+    x = np.arange(len(labels))
+    fig, ax = plt.subplots(figsize=(5.2, 2.45), facecolor='#0f1520')
+    bar_colors = ['#22c55e' if v >= 0 else '#ef4444' for v in growth.values]
+    ax.bar(x, growth.values, color=bar_colors, alpha=0.82, edgecolor='#c9a84c', linewidth=0.5)
+    ax.axhline(0, color='#8a94a6', linewidth=0.8, alpha=0.45)
+    _style_chart_ax(ax, 'y')
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _pos: f'{v:.0f}%'))
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=25, ha='right')
+    fig.tight_layout(pad=1.0)
+    return fig
+
+
+def _plot_category_revenue(df):
+    if df.empty:
+        return _empty_chart('No category data yet', height=2.45)
+    cat = df.groupby('category')['total'].sum().sort_values(ascending=False)
+    fig, ax = plt.subplots(figsize=(5.2, 2.45), facecolor='#0f1520')
+    colors = ['#c9a84c', '#e4be6a', '#f5d98a', '#3a7bd5', '#22c55e', '#f59e0b'][:len(cat)]
+    ax.bar(cat.index, cat.values, color=colors, alpha=0.86, edgecolor='#e4be6a', linewidth=0.7)
+    _style_chart_ax(ax, 'y')
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(_format_axis_inr))
+    ax.tick_params(axis='x', rotation=25)
+    fig.tight_layout(pad=1.0)
+    return fig
+
+
+def _chart_from_df(df, chart_type):
+    chart_map = {
+        'product': _plot_product_revenue,
+        'category': _plot_category_share,
+        'trend': _plot_sales_trend,
+        'profit_vs_revenue': _plot_profit_vs_revenue,
+        'growth': _plot_growth_rate,
+        'category_revenue': _plot_category_revenue,
+    }
+    plotter = chart_map.get(chart_type)
+    if plotter is None:
+        return _empty_chart('Chart not found')
+    return plotter(df)
 
 
 def _safe_pct_change(new_val, old_val):
@@ -271,7 +487,10 @@ def generate_ai_insights(df):
             f"🔁 '{top_prod}' is your best-selling product. "
             "Ensure adequate stock and consider a loyalty offer."
         )
+
     return insights
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 2. COMPARISON SYSTEM
 # ─────────────────────────────────────────────────────────────────────────────
@@ -303,6 +522,8 @@ def generate_comparisons(df):
         "week_change":  _safe_pct_change(tw_rev, lw_rev),
         "month_change": _safe_pct_change(tm_rev, lm_rev),
     }
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 3. ANOMALY DETECTION
 # ─────────────────────────────────────────────────────────────────────────────
@@ -310,6 +531,7 @@ def detect_anomalies(df):
     alerts = []
     if df.empty or df['date_dt'].isna().all():
         return alerts
+
     daily = df.groupby('date_dt')['total'].sum().reset_index()
     daily.columns = ['date', 'revenue']
 
@@ -349,7 +571,10 @@ def detect_anomalies(df):
             f"{zero_pft} Zero/Negative Profit Entries: Some entries are generating no profit. "
             "Review cost prices on those records."
         )
+
     return alerts
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 5. TOP / WORST PRODUCT RANKINGS
 # ─────────────────────────────────────────────────────────────────────────────
@@ -375,6 +600,8 @@ def get_product_rankings(df):
     worst = [fmt(r) for _, r in grouped.tail(3).iloc[::-1].iterrows()]
 
     return top, worst
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 6. TIME-BASED ANALYSIS
 # ─────────────────────────────────────────────────────────────────────────────
@@ -396,6 +623,8 @@ def get_time_insights(df):
         result['best_month'] = month_rev.idxmax()
 
     return result
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 7. GOAL TRACKING
 # ─────────────────────────────────────────────────────────────────────────────
@@ -412,7 +641,10 @@ def calculate_goal_progress(df, monthly_goal_target):
     pct = min(round(achieved / target * 100, 1), 100) if target > 0 else 0
 
     pft_target   = target * 0.5
-    pft_achieved = df [df['date_dt'] >=first_this]['profit'].sum() if not df.empty else 0
+    pft_achieved = (
+    df[df['date_dt'] >= first_this]['profit'].sum()
+    if not df.empty else 0
+)
     pft_pct      = min(round(pft_achieved / pft_target * 100, 1), 100) if pft_target > 0 else 0
 
     order_target   = 60
@@ -449,6 +681,8 @@ def calculate_goal_progress(df, monthly_goal_target):
         "goals":                 goals,
         "goal_raw":              target,
     }
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 9. MULTI-CHART DATA PREPARATION
 # ─────────────────────────────────────────────────────────────────────────────
@@ -516,6 +750,8 @@ def prepare_chart_data(df):
         "growth_chart":      growth_chart,
         "category_chart":    category_chart,
     }
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 8. ADMIN INTELLIGENCE
 # ─────────────────────────────────────────────────────────────────────────────
@@ -526,6 +762,8 @@ def _activity_level(entry_count):
         return 'medium'
     else:
         return 'low'
+
+
 def get_admin_intelligence(conn):
     user_rows = conn.execute("""
         SELECT u.id, u.name, u.email,
@@ -538,6 +776,7 @@ def get_admin_intelligence(conn):
         GROUP BY u.id
         ORDER BY revenue DESC
     """).fetchall()
+
     leaderboard = []
     top_users   = []
     risk_users  = []
@@ -585,12 +824,15 @@ def get_admin_intelligence(conn):
     admin_insights.append(
         f"Platform has {new_user_count} active user(s) contributing to revenue."
     )
+
     return {
         "top_users":      top_users,
         "risk_users":     risk_users,
         "leaderboard":    leaderboard,
         "admin_insights": admin_insights,
     }
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # STATS API
 # ─────────────────────────────────────────────────────────────────────────────
@@ -663,10 +905,14 @@ def login():
         flash("Invalid login", "danger")
 
     return render_template('login.html')
+
+
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('home'))
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # SET GOAL
 # ─────────────────────────────────────────────────────────────────────────────
@@ -828,38 +1074,6 @@ def dashboard():
             goal_data                 = calculate_goal_progress(df, monthly_goal_target)
             chart_data                = prepare_chart_data(df)
 
-            def style_ax(ax):
-                ax.set_facecolor('#0d0305')
-                ax.tick_params(colors='#9aa0a6', labelsize=8)
-                ax.spines['bottom'].set_color('#1e0608')
-                ax.spines['left'].set_color('#1e0608')
-                ax.spines['top'].set_visible(False)
-                ax.spines['right'].set_visible(False)
-
-            top_p = df.groupby('product')['total'].sum().sort_values(ascending=False).head(6)
-            fig, ax = plt.subplots(figsize=(5, 3), facecolor='#110407')
-            ax.bar(top_p.index, top_p.values, color='#ff2200', alpha=0.85, width=0.5)
-            style_ax(ax)
-            ax.set_ylabel('Revenue (₹)', color='#9aa0a6', fontsize=8)
-            plt.xticks(rotation=30, ha='right')
-            plt.tight_layout()
-            product_chart = generate_chart(fig)
-            cat_rev = df.groupby('category')['total'].sum()
-            colors  = ['#ff2200', '#cc1a00', '#991300', '#660d00', '#330600', '#ff5533']
-            fig, ax = plt.subplots(figsize=(5, 3), facecolor='#110407')
-            wedges, texts, autotexts = ax.pie(
-                cat_rev.values,
-                labels=cat_rev.index,
-                autopct='%1.1f%%',
-                colors=colors[:len(cat_rev)],
-                pctdistance=0.8,
-                startangle=140
-            )
-            for t in texts:     t.set_color('#9aa0a6'); t.set_fontsize(8)
-            for t in autotexts: t.set_color('#ffffff'); t.set_fontsize(7)
-            ax.set_facecolor('#0d0305')
-            plt.tight_layout()
-            category_chart = generate_chart(fig)
 
     return render_template(
         'dashboard.html',
@@ -875,6 +1089,7 @@ def dashboard():
         worst_products      = worst_products,
         best_day            = time_insights['best_day'],
         best_month          = time_insights['best_month'],
+        peak_hour           = '?',
         goal_target         = goal_data['goal_target'],
         goal_current        = goal_data['goal_current'],
         goal_achieved_percent = goal_data['goal_achieved_percent'],
@@ -892,7 +1107,32 @@ def dashboard():
         all_categories      = all_categories,
         monthly_goal_target = monthly_goal_target,
     )
+
+
 # ─────────────────────────────────────────────────────────────────────────────
+
+@app.route('/dashboard/chart/<chart_type>')
+def dashboard_chart(chart_type):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    df = _get_filtered_sales_df(session['user_id'], request.args)
+    return chart_response(_chart_from_df(df, chart_type))
+
+
+@app.route('/admin/user/<int:user_id>/chart/<chart_type>')
+def admin_user_chart(user_id, chart_type):
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    user = conn.execute('SELECT id, allow_admin_view FROM users WHERE id=?', (user_id,)).fetchone()
+    conn.close()
+    if not user or not user['allow_admin_view']:
+        return chart_response(_empty_chart('Chart access restricted'))
+
+    df = _get_filtered_sales_df(user_id)
+    return chart_response(_chart_from_df(df, chart_type))
+
 # EDIT
 # ─────────────────────────────────────────────────────────────────────────────
 @app.route('/edit/<int:id>', methods=['POST'])
@@ -1192,7 +1432,7 @@ def admin_delete_user(user_id):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# PROFILE  
+# PROFILE  ← FIXED
 # ─────────────────────────────────────────────────────────────────────────────
 @app.route('/profile')
 def profile():
@@ -1227,7 +1467,7 @@ def profile():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# UPDATE PROFILE  
+# UPDATE PROFILE  ← FIXED (refreshes session name + email)
 # ─────────────────────────────────────────────────────────────────────────────
 @app.route('/update_profile', methods=['POST'])
 def update_profile():
@@ -1300,8 +1540,10 @@ def change_password():
 def not_found(e):
     return render_template('home.html'), 404
 
+
 # ─────────────────────────────────────────────────────────────────────────────
 # RUN
 # ─────────────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
-   app.run(debug=True)
+    app.run(debug=True)
+   
