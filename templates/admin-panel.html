@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -459,8 +459,37 @@ td.id-cell { font-family:var(--font-mono); font-size:.68rem; color:var(--muted2)
 }
 @media(max-width:580px) {
     .stat-grid { grid-template-columns:1fr; }
-    .filter-form { flex-direction:column; }
     .sparkline-row { grid-template-columns:1fr; }
+
+    /* Filter form fix */
+    .filter-form {
+        flex-direction: column;
+        gap: 12px;
+    }
+    .filter-group {
+        min-width: 0;
+        width: 100%;
+    }
+    .filter-group label {
+        font-size: .65rem;
+    }
+    .filter-input {
+        width: 100%;
+        padding: 11px 12px;
+        font-size: .9rem;
+    }
+    .filter-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+        font-size: .88rem;
+    }
+    .filter-reset {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+        font-size: .88rem;
+    }
 }
 </style>
 </head>
@@ -495,7 +524,7 @@ td.id-cell { font-family:var(--font-mono); font-size:.68rem; color:var(--muted2)
             <div class="topbar-left">
                 <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
                 <div>
-                   
+                    
                     <div class="topbar-title">COMMAND CENTRE</div>
                 </div>
             </div>
@@ -717,7 +746,7 @@ td.id-cell { font-family:var(--font-mono); font-size:.68rem; color:var(--muted2)
                         <h3>Filter Users</h3>
                         <span class="card-tag">Smart</span>
                     </div>
-                    <div style="padding:16px 22px;">
+                    <div style="padding:16px 22px 20px;">
                         <form class="filter-form" method="GET" action="/admin-panel#users">
                             <div class="filter-group">
                                 <label>Min Revenue (₹)</label>
@@ -952,3 +981,12 @@ document.addEventListener('DOMContentLoaded',()=>{
 </script>
 </body>
 </html>
+    
+   
+   
+   
+   
+   
+   
+   
+  
