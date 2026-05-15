@@ -557,7 +557,85 @@
         font-size: 0.58rem; letter-spacing: 0.1em;
         color: var(--muted2);
     }
+    /* MOBILE BOTTOM NAV */
+.mobile-bottom-nav {
+    display: none;
+}
 
+@media (max-width: 768px) {
+
+    .mobile-bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 68px;
+
+        background: rgba(8,12,18,0.96);
+        backdrop-filter: blur(14px);
+
+        border-top: 1px solid var(--border);
+
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+
+        z-index: 999;
+    }
+
+    .mobile-bottom-nav::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 15%;
+        width: 70%;
+        height: 1px;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            var(--gold),
+            transparent
+        );
+        opacity: 0.4;
+    }
+
+    .mobile-bottom-nav a {
+        flex: 1;
+        height: 100%;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+
+        text-decoration: none;
+        color: var(--muted);
+
+        font-size: 0.72rem;
+        font-weight: 500;
+
+        transition: all 0.25s ease;
+    }
+
+    .mobile-bottom-nav a i {
+        font-size: 1rem;
+    }
+
+    .mobile-bottom-nav a.active {
+        color: var(--gold);
+    }
+
+    .mobile-bottom-nav a:hover {
+        color: var(--white);
+        background: rgba(201,168,76,0.05);
+    }
+
+    /* prevent content hiding behind nav */
+    .main-content {
+        padding-bottom: 90px;
+    }
+}
     /* DANGER ZONE */
     .danger-zone-row {
         display: flex; align-items: center; justify-content: space-between;
@@ -581,14 +659,96 @@
         .profile-layout { grid-template-columns: 1fr; }
         .identity-card { position: static; }
     }
-    @media (max-width: 768px) {
-        .grid-container { grid-template-columns: 1fr; }
-        .sidebar { display: none; }
-        .main-wrapper { margin-left: 0; }
-        .info-grid { grid-template-columns: 1fr; }
-        .action-tiles { grid-template-columns: 1fr; }
-        .main-content { padding: 24px 16px; }
+   @media (max-width: 768px) {
+
+    .grid-container {
+        grid-template-columns: 1fr;
     }
+
+    .sidebar {
+        position: fixed;
+        bottom: 0;
+        top: auto;
+        left: 0;
+
+        width: 100%;
+        height: 68px;
+
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-around;
+
+        border-right: none;
+        border-top: 1px solid var(--border);
+
+        background: rgba(8,12,18,0.96);
+        backdrop-filter: blur(14px);
+
+        z-index: 999;
+    }
+
+    .logo-section,
+    .sidebar-section-label {
+        display: none;
+    }
+
+    .nav-links {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+    }
+
+    .nav-links li {
+        flex: 1;
+        list-style: none;
+    }
+
+    .nav-links li a {
+        height: 100%;
+        border-left: none;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        gap: 4px;
+        padding: 0;
+
+        font-size: 0.72rem;
+    }
+
+    .nav-links li a i {
+        font-size: 1rem;
+        width: auto;
+    }
+
+    .logout-item {
+        margin-top: 0;
+    }
+
+    .main-wrapper {
+        margin-left: 0;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-tiles {
+        grid-template-columns: 1fr;
+    }
+
+    .main-content {
+        padding: 24px 16px 90px;
+    }
+
+    /* REMOVE OLD MOBILE NAV */
+    .mobile-bottom-nav {
+        display: none;
+    }
+}
 
     /* ENTRANCE */
     .panel, .identity-card {
@@ -627,6 +787,10 @@
     <!-- MAIN -->
     <div class="main-wrapper">
         <main class="main-content">
+           
+
+    
+
             <div class="content-inner">
 
                 <!-- FLASH -->
@@ -853,6 +1017,23 @@
 
             </div><!-- /content-inner -->
         </main>
+        <!-- MOBILE BOTTOM NAV -->
+<div class="mobile-bottom-nav">
+    <a href="/dashboard">
+        <i class="fas fa-home"></i>
+        <span>Dashboard</span>
+    </a>
+
+    <a href="/profile" class="active">
+        <i class="fas fa-user"></i>
+        <span>Profile</span>
+    </a>
+
+    <a href="/logout">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+    </a>
+</div>
     </div>
 </div>
 
