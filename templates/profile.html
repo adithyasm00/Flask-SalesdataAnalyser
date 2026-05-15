@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -44,7 +44,6 @@
         overflow-x: hidden;
     }
 
-    /* GRAIN */
     body::before {
         content: '';
         position: fixed; inset: 0;
@@ -52,14 +51,14 @@
         pointer-events: none; z-index: 9999; opacity: 0.5;
     }
 
-    /* LAYOUT */
+    /* ══ LAYOUT ══ */
     .grid-container {
         display: grid;
         grid-template-columns: var(--sidebar-w) 1fr;
         min-height: 100vh;
     }
 
-    /* ══ SIDEBAR ══ */
+    /* ══ SIDEBAR (desktop) ══ */
     .sidebar {
         background: linear-gradient(180deg, #080e18 0%, #06090f 100%);
         border-right: 1px solid var(--border);
@@ -171,10 +170,9 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        align-items: center;      /* horizontal center */
+        align-items: center;
     }
 
-    /* inner wrapper constrains max-width and centers everything */
     .content-inner {
         width: 100%;
         max-width: 900px;
@@ -193,15 +191,7 @@
     .flash.error   { border-left-color: var(--red);   background: var(--red-dim); }
 
     /* PAGE HEADER */
-    .page-header {
-        margin-bottom: 32px;
-        width: 100%;
-    }
-    .page-eyebrow {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.58rem; letter-spacing: 0.25em;
-        color: var(--gold); text-transform: uppercase; margin-bottom: 6px;
-    }
+    .page-header { margin-bottom: 32px; width: 100%; }
     .page-title {
         font-family: 'Syne', sans-serif;
         font-size: 2rem; font-weight: 800;
@@ -539,11 +529,6 @@
     .form-panel.visible { display: block; }
 
     .form-section-head { margin-bottom: 20px; }
-    .form-section-head .eyebrow {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.55rem; letter-spacing: 0.2em;
-        color: var(--gold); text-transform: uppercase; margin-bottom: 4px;
-    }
     .form-section-head .title {
         font-family: 'Syne', sans-serif;
         font-size: 1.2rem; font-weight: 800;
@@ -557,85 +542,7 @@
         font-size: 0.58rem; letter-spacing: 0.1em;
         color: var(--muted2);
     }
-    /* MOBILE BOTTOM NAV */
-.mobile-bottom-nav {
-    display: none;
-}
 
-@media (max-width: 768px) {
-
-    .mobile-bottom-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 68px;
-
-        background: rgba(8,12,18,0.96);
-        backdrop-filter: blur(14px);
-
-        border-top: 1px solid var(--border);
-
-        display: flex;
-        align-items: center;
-        justify-content: space-around;
-
-        z-index: 999;
-    }
-
-    .mobile-bottom-nav::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 15%;
-        width: 70%;
-        height: 1px;
-        background: linear-gradient(
-            90deg,
-            transparent,
-            var(--gold),
-            transparent
-        );
-        opacity: 0.4;
-    }
-
-    .mobile-bottom-nav a {
-        flex: 1;
-        height: 100%;
-
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-
-        text-decoration: none;
-        color: var(--muted);
-
-        font-size: 0.72rem;
-        font-weight: 500;
-
-        transition: all 0.25s ease;
-    }
-
-    .mobile-bottom-nav a i {
-        font-size: 1rem;
-    }
-
-    .mobile-bottom-nav a.active {
-        color: var(--gold);
-    }
-
-    .mobile-bottom-nav a:hover {
-        color: var(--white);
-        background: rgba(201,168,76,0.05);
-    }
-
-    /* prevent content hiding behind nav */
-    .main-content {
-        padding-bottom: 90px;
-    }
-}
     /* DANGER ZONE */
     .danger-zone-row {
         display: flex; align-items: center; justify-content: space-between;
@@ -654,102 +561,6 @@
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.2); border-radius: 10px; }
 
-    /* RESPONSIVE */
-    @media (max-width: 1024px) {
-        .profile-layout { grid-template-columns: 1fr; }
-        .identity-card { position: static; }
-    }
-   @media (max-width: 768px) {
-
-    .grid-container {
-        grid-template-columns: 1fr;
-    }
-
-    .sidebar {
-        position: fixed;
-        bottom: 0;
-        top: auto;
-        left: 0;
-
-        width: 100%;
-        height: 68px;
-
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-around;
-
-        border-right: none;
-        border-top: 1px solid var(--border);
-
-        background: rgba(8,12,18,0.96);
-        backdrop-filter: blur(14px);
-
-        z-index: 999;
-    }
-
-    .logo-section,
-    .sidebar-section-label {
-        display: none;
-    }
-
-    .nav-links {
-        display: flex;
-        width: 100%;
-        height: 100%;
-        padding: 0;
-    }
-
-    .nav-links li {
-        flex: 1;
-        list-style: none;
-    }
-
-    .nav-links li a {
-        height: 100%;
-        border-left: none;
-
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-
-        gap: 4px;
-        padding: 0;
-
-        font-size: 0.72rem;
-    }
-
-    .nav-links li a i {
-        font-size: 1rem;
-        width: auto;
-    }
-
-    .logout-item {
-        margin-top: 0;
-    }
-
-    .main-wrapper {
-        margin-left: 0;
-    }
-
-    .info-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .action-tiles {
-        grid-template-columns: 1fr;
-    }
-
-    .main-content {
-        padding: 24px 16px 90px;
-    }
-
-    /* REMOVE OLD MOBILE NAV */
-    .mobile-bottom-nav {
-        display: none;
-    }
-}
-
     /* ENTRANCE */
     .panel, .identity-card {
         opacity: 0; transform: translateY(16px);
@@ -759,6 +570,126 @@
     .panel:nth-child(1) { animation-delay: 0.12s; }
     .panel:nth-child(2) { animation-delay: 0.22s; }
     @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+    /* ══════════════════════════════════════
+       RESPONSIVE — ≤1024px
+    ══════════════════════════════════════ */
+    @media (max-width: 1024px) {
+        .profile-layout { grid-template-columns: 1fr; }
+        .identity-card { position: static; }
+    }
+
+    /* ══════════════════════════════════════
+       RESPONSIVE — ≤768px  (MOBILE)
+    ══════════════════════════════════════ */
+    @media (max-width: 768px) {
+
+        /* ── Grid: single column ── */
+        .grid-container {
+            grid-template-columns: 1fr;
+        }
+
+        /* ── Sidebar becomes fixed bottom tab-bar ── */
+        .sidebar {
+            position: fixed;
+            bottom: 0; top: auto; left: 0;
+            width: 100%; height: 64px;
+
+            flex-direction: row;
+            align-items: stretch;
+
+            border-right: none;
+            border-top: 1px solid var(--border);
+
+            background: rgba(8,12,18,0.97);
+            backdrop-filter: blur(16px);
+
+            z-index: 999;
+
+            /* kill the vertical gold line */
+        }
+        /* remove the vertical animated line on mobile */
+        .sidebar::after { display: none; }
+
+        /* gold top-glow instead */
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 15%; width: 70%; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            opacity: 0.35;
+        }
+
+        /* hide desktop-only chrome */
+        .logo-section,
+        .sidebar-section-label { display: none; }
+
+        /* nav-links = full-width flex row of tabs */
+        .nav-links {
+            display: flex;
+            flex-direction: row;
+            width: 100%; height: 100%;
+            padding: 0;
+            flex: 1;
+            /* CRITICAL: kill margin-top:auto on logout-item in flex-row context */
+            align-items: stretch;
+        }
+
+        .nav-links li {
+            flex: 1;
+            display: flex;
+        }
+
+        /* kill the logout-item margin-top:auto that breaks layout in row mode */
+        .logout-item { margin-top: 0; }
+
+        .nav-links li a {
+            flex: 1;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 0 4px;
+            font-size: 0.68rem;
+            /* kill desktop left-border indicator */
+            border-left: none;
+            /* add bottom indicator instead */
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-links li a i {
+            font-size: 1.1rem;
+            width: auto;
+        }
+
+        .nav-links li a.active {
+            color: var(--gold);
+            background: rgba(201,168,76,0.06);
+            border-left: none;
+            border-bottom: 2px solid var(--gold);
+        }
+
+        /* ── Main wrapper: no left margin ── */
+        .main-wrapper { margin-left: 0; }
+
+        /* ── Top navbar: slimmer, smaller padding ── */
+        .top-navbar {
+            padding: 0 16px;
+            height: 52px;
+        }
+
+        /* ── Content padding + bottom clearance for tab-bar ── */
+        .main-content {
+            padding: 20px 16px 84px;
+        }
+
+        /* ── Info & action grids: single column ── */
+        .info-grid { grid-template-columns: 1fr; }
+        .action-tiles { grid-template-columns: 1fr; }
+
+        /* ── Page title smaller ── */
+        .page-title { font-size: 1.5rem; }
+    }
     </style>
 </head>
 <body>
@@ -787,10 +718,6 @@
     <!-- MAIN -->
     <div class="main-wrapper">
         <main class="main-content">
-           
-
-    
-
             <div class="content-inner">
 
                 <!-- FLASH -->
@@ -810,7 +737,6 @@
 
                 <!-- PAGE HEADER -->
                 <div class="page-header">
-                    
                     <div class="page-title">MY PROFILE</div>
                 </div>
 
@@ -919,7 +845,6 @@
                                 <!-- EDIT PROFILE FORM -->
                                 <div id="edit-profile" class="form-panel">
                                     <div class="form-section-head">
-                                        
                                         <div class="title">BASIC INFORMATION</div>
                                     </div>
                                     <form action="/update_profile" method="POST">
@@ -953,7 +878,6 @@
                                 <!-- CHANGE PASSWORD FORM -->
                                 <div id="change-password" class="form-panel">
                                     <div class="form-section-head">
-                                        
                                         <div class="title">UPDATE PASSWORD</div>
                                     </div>
                                     <form action="/change_password" method="POST">
@@ -1017,23 +941,6 @@
 
             </div><!-- /content-inner -->
         </main>
-        <!-- MOBILE BOTTOM NAV -->
-<div class="mobile-bottom-nav">
-    <a href="/dashboard">
-        <i class="fas fa-home"></i>
-        <span>Dashboard</span>
-    </a>
-
-    <a href="/profile" class="active">
-        <i class="fas fa-user"></i>
-        <span>Profile</span>
-    </a>
-
-    <a href="/logout">
-        <i class="fas fa-sign-out-alt"></i>
-        <span>Logout</span>
-    </a>
-</div>
     </div>
 </div>
 
@@ -1072,3 +979,6 @@ function checkStrength() {
 </script>
 </body>
 </html>
+  
+  
+  
